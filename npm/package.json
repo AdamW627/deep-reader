@@ -1,0 +1,21 @@
+{
+  "name": "@adamw_999/deep_reader",
+  "version": "0.1.0",
+  "description": "Local-first macOS PDF reader with a DeepSeek research assistant",
+  "type": "module",
+  "bin": {"deepseek-reader": "bin/reader.mjs"},
+  "os": ["darwin"],
+  "cpu": ["arm64", "x64"],
+  "engines": {"node": ">=20"},
+  "license": "AGPL-3.0-only",
+  "repository": {"type": "git", "url": "git+https://github.com/AdamW627/deep-reader.git", "directory": "npm"},
+  "homepage": "https://github.com/AdamW627/deep-reader#readme",
+  "bugs": {"url": "https://github.com/AdamW627/deep-reader/issues"},
+  "keywords": ["pdf", "paper", "reader", "deepseek", "research", "local-first", "macos"],
+  "files": ["bin/reader.mjs", "app/", "README.md", "LICENSE", "PRIVACY.md", "SECURITY.md"],
+  "scripts": {
+    "prepack": "node prepare.mjs",
+    "test": "node --test test/*.test.mjs"
+  },
+  "publishConfig": {"access": "public", "registry": "https://registry.npmjs.org/"}
+}

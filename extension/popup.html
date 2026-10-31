@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>收藏到论文阅读器</title>
+  <link rel="stylesheet" href="popup.css">
+  <script src="popup.js" defer></script>
+</head>
+<body>
+  <main>
+    <header class="brand"><svg class="mark" width="36" height="36" viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" rx="6" fill="#2f5d4a"/><g fill="none" stroke="#fff" stroke-width="3.2" stroke-linejoin="miter"><path d="M12 16H23L31 24V36L23 44H12Z"/><path d="M38 44V16H48L53 21V27L48 32H38M45 32L52 44"/></g><path d="M12 51H53" stroke="#9fd3b8" stroke-width="2.2"/></svg><div><span class="eyebrow">DR · DeepSeek Reader</span><h1>把这篇论文带回书架</h1></div></header>
+    <p class="intro">发送当前 PDF 或论文网页链接，由本机阅读器下载并导入。</p>
+    <button id="capture" type="button" disabled>收藏当前页面</button>
+    <p id="status" role="status" aria-live="polite">正在读取配置…</p>
+    <details id="settings">
+      <summary>连接设置</summary>
+      <form id="config-form">
+        <label for="backend">阅读器地址</label>
+        <input id="backend" type="url" required placeholder="http://127.0.0.1:8765" autocomplete="off" spellcheck="false">
+        <p class="hint">仅支持本机 http://127.0.0.1 或 http://localhost，可更改端口。</p>
+        <label for="token">收藏令牌</label>
+        <input id="token" type="password" required placeholder="从阅读器「设置」复制后粘贴" autocomplete="off" spellcheck="false">
+        <p class="hint">令牌仅保存在此浏览器的扩展本地存储中。</p>
+        <button class="secondary" id="save" type="submit">保存设置</button>
+      </form>
+    </details>
+    <footer>仅发送链接和标题；不会上传网页、Cookie 或登录信息。需先启动本地阅读器。</footer>
+  </main>
+</body>
+</html>

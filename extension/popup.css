@@ -1,0 +1,25 @@
+:root { color-scheme: light; font-family: system-ui, -apple-system, "PingFang SC", sans-serif; color: #20302c; background: #f5f6f2; }
+* { box-sizing: border-box; }
+body { margin: 0; width: 360px; }
+main { padding: 24px; }
+.eyebrow { font-size: 12px; color: #61776d; letter-spacing: .08em; }
+.brand { display: flex; align-items: center; gap: 12px; }
+.brand h1 { margin: 2px 0 0; }
+p { line-height: 1.6; }
+.intro { font-size: 13px; color: #58685f; margin: 0 0 20px; }
+button { border: 0; border-radius: 9px; background: #24604c; color: white; padding: 12px; width: 100%; cursor: pointer; font: inherit; font-weight: 600; }
+button:hover { background: #194b3a; }
+button:disabled { opacity: .55; cursor: wait; }
+button:focus-visible, input:focus-visible, summary:focus-visible { outline: 3px solid #84bba5; outline-offset: 3px; }
+#status { font-size: 13px; min-height: 24px; overflow-wrap: anywhere; }
+#status[data-kind="error"] { color: #ab302c; }
+#status[data-kind="success"] { color: #24604c; }
+details { border-top: 1px solid #dbe1d9; padding-top: 15px; }
+summary { cursor: pointer; font-size: 13px; }
+label { display: block; font-size: 13px; margin: 16px 0 7px; }
+input { width: 100%; padding: 10px; border: 1px solid #c7d2c9; border-radius: 6px; background: #fff; font: inherit; font-size: 13px; }
+.hint, footer { color: #68776e; font-size: 11px; line-height: 1.7; }
+.hint { margin: 6px 0; }
+.secondary { background: #e0e9e1; color: #284e3e; font-size: 13px; margin-top: 12px; }
+.secondary:hover { background: #d1e0d4; }
+footer { margin-top: 20px; }
