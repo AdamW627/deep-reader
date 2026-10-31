@@ -1,31 +1,120 @@
+<div align="center">
+
+<img src="frontend/public/favicon.svg" width="80" alt="DR logo">
+
 # DR · DeepSeek Reader
 
-[![npm](https://img.shields.io/npm/v/%40adamw_999%2Fdeep_reader)](https://www.npmjs.com/package/@adamw_999/deep_reader)
+**读论文、问细节、查出处 —— 在同一个工作台完成。**
+
+本地优先的 AI 论文阅读器，每一条回答都能跳回原文段落。
+
+[![npm](https://img.shields.io/npm/v/%40adamw_999%2Fdeep_reader?color=2f5d4a)](https://www.npmjs.com/package/@adamw_999/deep_reader)
 [![Checks](https://github.com/AdamW627/deep-reader/actions/workflows/ci.yml/badge.svg)](https://github.com/AdamW627/deep-reader/actions/workflows/ci.yml)
 [![License: AGPL v3](https://img.shields.io/badge/License-AGPL_v3-blue.svg)](LICENSE)
+![Platform](https://img.shields.io/badge/platform-macOS%2014%2B-lightgrey)
 
-**把论文阅读、原文证据和研究对话放在同一个工作台。**
+[快速开始](#快速开始macos) · [功能说明](#使用) · [English](README.en.md) · [更新日志](CHANGELOG.md) · [参与贡献](CONTRIBUTING.md)
 
-DR（DeepSeek Reader）是一款本地优先的论文阅读器：左侧管理项目与论文，中间连续阅读 PDF，右侧与基于 DeepSeek Harness 的研究助手交流。从选段翻译、公式推导到图表讲解，回答中的段落引用都可以跳回原文。
-
-[English](README.en.md) · [npm 安装](#快速开始macos) · [功能与使用](#使用) · [参与贡献](CONTRIBUTING.md) · [更新日志](CHANGELOG.md)
+</div>
 
 ![DR 论文阅读工作台](docs/reader.png)
 
-*实际界面截图，使用合成演示论文；右侧为本地提取的免费快览。*
+<p align="center"><sub>左：项目论文库 · 中：连续阅读 PDF · 右：研究助手（截图使用合成演示论文）</sub></p>
 
-## 功能概览
+## 为什么用 DR
 
-| 功能 | 用途 |
+- **回答有出处**：引用精确到段落（如 `p.5#16`），悬停预览原文，点击跳转并高亮，不用再怀疑 AI 是不是编的。
+- **选中即问**：选一段文字，一键翻译、解释、推导公式、讲解图表、审稿或迁移到你的研究；翻译约 1 秒出结果。
+- **看得懂全文和图表**：Agent 按需阅读全文、图表与页面原图，并实时展示它读了什么、看了哪张图。
+- **用多少付多少**：导入、阅读、本地摘要都不调用模型；深度导读只在你点击时才生成。
+- **记得你的研究**：按项目管理论文，每篇论文多会话，项目级长期记忆结合你的研究背景调整讲解深度。
+- **一条命令启动**：`npm install -g` 后直接运行，Python 环境自动准备，数据全部保存在本机。
+
+> [!NOTE]
+> 本机单用户工具，**非 DeepSeek 官方产品**。模型功能会把论文内容及相关上下文发送给你配置的供应商，并按其规则计费。使用前请阅读 [隐私说明](PRIVACY.md) 与 [安全边界](SECURITY.md)。
+
+## 看看它能做什么
+
+下面以 ResNet 论文（[arXiv:1512.03385](https://arxiv.org/abs/1512.03385)）为例。回答内容与段落编号为示意，实际输出以模型为准。
+
+### 1. 一个链接，导入并打开论文
+
+```text
+http://127.0.0.1:8765/?url=https%3A%2F%2Farxiv.org%2Fpdf%2F1512.03385
+```
+
+打开链接即导入到当前项目并开始阅读。也可以选择多个 PDF、导入整个文件夹，或用 [浏览器扩展](extension/README.md) 一键收藏。导入和阅读都不调用模型。
+
+### 2. 选中一句，约 1 秒出译文
+
+**选中原文：**
+
+> Instead of hoping each few stacked layers directly fit a desired underlying mapping, we explicitly let these layers fit a residual mapping.
+
+**右侧逐字显示：**
+
+> 我们不再期望每几层堆叠的网络直接拟合所需的底层映射，而是显式地让这些层去拟合一个残差映射。
+
+翻译只发送选中的文字，同一段再次翻译直接读取本地缓存，不再产生费用。
+
+### 3. 公式推导，每一步都有出处
+
+**选中** $\mathcal{F}(x) = \mathcal{H}(x) - x$，**点击「推导」：**
+
+> **为什么学残差比直接学映射更容易？**
+>
+> 1. 原本要学习 $\mathcal{H}(x)$，作者改为学习 $\mathcal{F}(x)=\mathcal{H}(x)-x$，输出写成 $y=\mathcal{F}(x)+x$ `p.3#8`
+> 2. 如果最优映射接近恒等映射，只需把 $\mathcal{F}$ 的权重推向 0，比让多层非线性网络拟合恒等映射容易得多 `p.3#9`
+> 3. 实验印证：普通网络 34 层的训练误差高于 18 层，残差网络则相反 `p.6#21`，见 Figure 4
+
+回答里的 `p.3#8` 是可点击的引用：悬停预览原文，点击跳到该段并高亮。
+
+### 4. 看懂图表，过程透明
+
+**选中 Figure 1 的图注，点击「图表」。** Agent 会先找证据，回复区实时显示它在做什么：
+
+```text
+▸ 阅读 fulltext.md（第 1–2 页）
+▸ 查看 figures/fig1.png
+▸ 查看 pages/p1.jpg
+```
+
+> 左右两图分别是 CIFAR-10 上的训练误差和测试误差。56 层普通网络的**两条曲线都高于** 20 层，说明问题不是过拟合（否则训练误差应更低），而是更深的网络更难优化，也就是论文所说的“退化问题” `p.1#4`
+
+### 5. 结合你的研究来讲
+
+在设置里填写研究背景：“我在做医学影像分割，常用 U-Net”。**选中残差块那一段，点击「迁移」：**
+
+> 可以把 U-Net 编码器中的每个卷积块替换为残差块。注意论文在维度变化时用 1×1 卷积做投影捷径 `p.4#13`，你的下采样层同样需要这样处理，否则 $x$ 与 $\mathcal{F}(x)$ 的形状对不上……
+
+同样的选段还可以点「审稿」，让它从审稿人角度挑实验设计和结论的问题。
+
+### 6. 深度导读：先看路线，再读全文
+
+右栏「导读」默认显示本地提取的摘要（免费）。点击「生成深度导读」后，Agent 通读全文和关键图表，得到：
+
+| 项目 | 内容（示意） |
 | --- | --- |
-| 项目论文库 | 按研究项目分组，批量导入 PDF、文件夹或论文链接 |
-| 连续 PDF 阅读 | 目录导航、全文搜索、高亮备注、浅色与深色外观 |
-| 选段操作 | 翻译、解释、推导、图表、审稿、迁移，也可自由提问 |
-| 可追溯的回答 | 查看 Agent 的阅读与工具调用记录，点击段落引用返回证据 |
-| 按需深度导读 | 本地摘要免费浏览，需要时再生成方法、结果与阅读路线 |
-| 研究上下文 | 每篇论文独立多会话，结合研究背景和项目级长期记忆 |
+| 要解决的问题 | 网络越深，训练误差反而越高（退化问题） |
+| 核心想法 | 让层学习残差 $\mathcal{F}(x)$，通过恒等捷径与输入相加 |
+| 关键公式 | $y = \mathcal{F}(x, \lbrace W_i \rbrace) + x$ |
+| 主要结果 | ImageNet 上 top-5 错误率 3.57%，获 ILSVRC 2015 分类第一 |
+| 存疑之处 | 1202 层的 CIFAR 网络反而不如 110 层，作者归因于过拟合 |
+| 阅读路线 | §1 动机 → Figure 1 → §3.1–3.2 → Table 3、4 → §4.2 |
 
-> 本机单用户工具，非 DeepSeek 官方产品。模型功能会向配置的供应商发送论文内容及相关上下文，自动记忆整理也会联网并产生费用。使用前请阅读 [隐私说明](PRIVACY.md) 与 [安全边界](SECURITY.md)。
+之后在这篇论文里的所有对话都会参考这份导读。
+
+### 7. 跨论文的研究记忆
+
+每个项目有独立的长期记忆，由 DR 从对话中自动整理，也可以手动编辑：
+
+```text
+目标   在小样本 CT 数据上提升小器官分割的 Dice
+约束   单卡 24GB 显存，推理需低于 200ms
+线索   残差编码器 + 深监督值得尝试（来自 ResNet、UNet++）
+```
+
+在同一项目的任意论文里提问时，Agent 会按关键词带上最相关的 3 条记忆，回答自然贴合你的课题。
 
 ## 快速开始（macOS）
 
@@ -154,20 +243,6 @@ paper logs     # 查看并跟踪日志
 导入时为每篇论文生成 Agent 资料：带段落编号的 `fulltext.md`、每页图片 `pages/pN.jpg`、按图注裁剪的 `figures/`（索引在 `figures.md`）以及 `blocks.json`（段落坐标，用于引用高亮）。旧论文在首次打开或提问时自动补齐，每篇约 2–15 MB。讲解协议写在论文目录的 `AGENTS.md`，由 Harness 自动加载；Agent 用 `read_image` 查看公式、图表原图（`deepseek-flash` 支持图像输入）。扫描件没有文字层，暂不支持全文搜索和段落引用。独立会话保存在 `.data/harness/`。高亮备注单独保存 JSON，暂未嵌入导出 PDF。
 
 当前 Harness SDK（0.2.1rc2）只转发完整的模型步骤，没有逐字流：回复区实时显示 Agent 正在阅读的文件、查看的图片和每一步的文字。翻译不走 Harness，所以能逐字显示。
-
-## 品牌标志
-
-DR 标志是 64×64 的 SVG，同一份图形保存在三处，修改时需同步：
-
-- `frontend/src/Mark.jsx`：侧栏、欢迎页和研究助手头像，颜色跟随主题。
-- `frontend/public/favicon.svg`：浏览器标签图标。
-- `extension/popup.html`：扩展弹窗顶部。
-
-扩展图标 `extension/icon16.png`、`icon48.png`、`icon128.png` 由 favicon 导出：
-
-```sh
-.venv/bin/python -c "import pymupdf; p = pymupdf.open('frontend/public/favicon.svg')[0]; [p.get_pixmap(matrix=pymupdf.Matrix(s/64, s/64), alpha=True).save(f'extension/icon{s}.png') for s in (16, 48, 128)]"
-```
 
 ## 验证
 
