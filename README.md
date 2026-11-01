@@ -144,7 +144,7 @@ npm 安装的数据与运行环境保存在 `~/Library/Application Support/deeps
 
 ### 运行环境
 
-需要 Python 3.12、Node.js 20+。推荐 macOS / Linux；Windows 请使用 WSL（启动脚本为 Bash）。克隆后进入项目根目录：
+需要 Python 3.12、Node.js 20+。支持 macOS / Linux 和 Windows 原生源码运行。macOS / Linux 克隆后进入项目根目录：
 
 ```sh
 git clone https://github.com/AdamW627/deep-reader.git
@@ -158,7 +158,46 @@ npx playwright install chromium
 cd ..
 ```
 
-### 启动
+### Windows 安装与启动
+
+安装 Python 3.12 和 Node.js 20+，在 PowerShell 中运行：
+
+```powershell
+git clone https://github.com/AdamW627/deep-reader.git
+cd deep-reader
+py -3.12 -m venv .venv
+.\.venv\Scripts\python.exe -m pip install -r requirements.txt
+npm.cmd --prefix frontend ci
+npm.cmd --prefix frontend run build
+.\scripts\paper.cmd
+```
+
+无需激活虚拟环境或全局更改 PowerShell 执行策略。启动器从自身位置定位项目，支持空格和中文路径。也可用 `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\paper.ps1 start` 直接调用。
+
+```powershell
+.\scripts\paper.cmd start    # 后台启动，不打开浏览器
+.\scripts\paper.cmd status   # 查看状态
+.\scripts\paper.cmd restart  # 重启
+.\scripts\paper.cmd logs     # 跟踪标准输出和错误日志，Ctrl-C 退出
+.\scripts\paper.cmd stop     # 停止此启动器记录的服务
+```
+
+默认地址为 `http://127.0.0.1:8765`，可通过 `-Port 8766` 指定其他端口；后续管理命令使用相同参数。日志与进程记录位于 `.data/`。进程记录包含启动时间，避免 PID 被复用后误停其他程序。旧版仅包含 PID 的记录不会用于停止进程；首次升级时请手动关闭旧服务。Windows 源码支持不包含 macOS 专用的 npm 自动安装器。
+
+Windows 验证：
+
+```powershell
+.\.venv\Scripts\python.exe -m pip install -r requirements-dev.txt
+.\.venv\Scripts\python.exe -m pytest tests -q
+cd frontend
+npx.cmd playwright install chromium
+npx.cmd playwright test
+cd ..
+```
+
+未启用开发者模式或没有符号链接权限时，相应测试会明确跳过。后端统一以 UTF-8 保存文本，遇到 Windows 短暂文件占用时有限重试原子替换。
+
+### macOS / Linux 启动
 
 推荐安装全局 `paper` 命令（一次性）：
 
@@ -236,7 +275,7 @@ paper logs     # 查看并跟踪日志
 - Base URL: `https://api.deepseek.com/anthropic`
 - 模型: `deepseek-flash`
 
-原来的 `https://api.deepseek.com` 会出现 HTTP 404，应用会自动迁移这个旧配置。Key 存于 `~/.config/deepseek-pdf-reader/settings.json`，文件权限 0600，页面不回传 Key。请勿把本地服务暴露到公网。
+原来的 `https://api.deepseek.com` 会出现 HTTP 404，应用会自动迁移这个旧配置。Key 存于 `~/.config/deepseek-pdf-reader/settings.json`（Windows 为用户主目录下的 `.config/deepseek-pdf-reader/settings.json`），页面不回传 Key。POSIX 系统使用 0600 权限；Windows 的访问控制取决于目录继承的 ACL，`chmod` 不会设置等效的私有 ACL。请勿把本地服务暴露到公网。
 
 翻译不经过 Harness：后端用同一组 Key、模型和 Base URL 直接请求 `<Base URL>/v1/messages`，关闭思考并流式返回。
 

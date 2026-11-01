@@ -1,5 +1,13 @@
 # 更新日志
 
+### Windows 原生源码支持
+
+- 文本与 JSON 显式使用 UTF-8；统一原子写入，针对 Windows 短暂文件占用有限重试，失败清理临时文件并保留原文件。
+- 增加 PowerShell / CMD 启动器，支持启动、停止、重启、状态、双日志跟踪和自定义端口；用进程启动时间防止 PID 复用导致误停。
+- 修复 Windows 路径在工具进度中的显示和测试路径比较；符号链接仅在缺少 Windows 权限时跳过。
+- 源码发布包纳入 Windows 启动脚本；补充中英文安装说明及 Windows、Linux、macOS CI。
+- 支持范围为源码运行；npm 自动安装器仍仅支持 macOS。详见 [Windows 适配评估](docs/windows-support.md)。
+
 ### GitHub 公开发布
 
 - 采用 AGPL-3.0-only，增加完整许可证与贡献指南。

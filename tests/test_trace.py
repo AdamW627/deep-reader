@@ -1,8 +1,14 @@
-from backend.trace import TraceCollector
+from backend.trace import TraceCollector, describe
 from tests.test_conversations import sdk
 from tests.backend_test import client, upload
 from types import SimpleNamespace
 import json
+import pytest
+
+
+@pytest.mark.parametrize('path', ['/papers/研究/fulltext.md', r'C:\papers\研究\fulltext.md'])
+def test_tool_description_accepts_both_path_separators(path):
+    assert describe({'type': 'tool/call', 'data': {'name': 'read', 'arguments': json.dumps({'path': path})}}) == '阅读 fulltext.md'
 
 
 def test_chat_stream_and_history_preserve_trace(client, sdk, monkeypatch):

@@ -22,6 +22,9 @@ def test_release_allowlist_excludes_private_artifacts():
     assert release.allowed('frontend/src/main.jsx')
     assert release.allowed('npm/bin/reader.mjs')
     assert release.allowed('requirements-macos.lock')
+    assert release.allowed('scripts/paper.ps1')
+    assert release.allowed('scripts/paper.cmd')
+    assert not release.allowed('scripts/private.ps1')
 
 
 @pytest.mark.skipif(not (ROOT / '.git').exists(), reason='Repackaging requires the maintainer Git checkout')
@@ -34,6 +37,8 @@ def test_release_archive_is_source_only(tmp_path):
         assert 'deepseek-reader/LICENSE' in source.getnames()
         assert 'deepseek-reader/npm/bin/reader.mjs' in source.getnames()
         assert 'deepseek-reader/requirements-macos.lock' in source.getnames()
+        assert 'deepseek-reader/scripts/paper.ps1' in source.getnames()
+        assert 'deepseek-reader/scripts/paper.cmd' in source.getnames()
         assert all(release.allowed(member.name.removeprefix('deepseek-reader/')) for member in members)
         assert all(member.uid == member.gid == 0 and not member.uname and not member.gname for member in members)
         assert not any(member.issym() for member in members)

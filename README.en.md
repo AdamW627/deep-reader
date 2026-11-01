@@ -144,7 +144,7 @@ The npm launcher stores its runtime, library, settings, and logs in `~/Library/A
 
 ### Requirements
 
-Use Python 3.12 and Node.js 20+. macOS/Linux are recommended; on Windows use WSL for the Bash launcher. Clone the repository and enter its root directory:
+Use Python 3.12 and Node.js 20+. Source installations support macOS/Linux and native Windows. On macOS/Linux, clone the repository and enter its root directory:
 
 ```sh
 git clone https://github.com/AdamW627/deep-reader.git
@@ -158,7 +158,46 @@ npx playwright install chromium
 cd ..
 ```
 
-### Start the reader
+### Windows setup and launcher
+
+Install Python 3.12 and Node.js 20+, then run in PowerShell:
+
+```powershell
+git clone https://github.com/AdamW627/deep-reader.git
+cd deep-reader
+py -3.12 -m venv .venv
+.\.venv\Scripts\python.exe -m pip install -r requirements.txt
+npm.cmd --prefix frontend ci
+npm.cmd --prefix frontend run build
+.\scripts\paper.cmd
+```
+
+No virtual environment activation or global execution policy change is required. The launcher locates the project relative to itself, including paths containing spaces or Unicode. To invoke PowerShell directly, use `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\paper.ps1 start`.
+
+```powershell
+.\scripts\paper.cmd start    # Start without opening the browser
+.\scripts\paper.cmd status   # Show status
+.\scripts\paper.cmd restart  # Restart
+.\scripts\paper.cmd logs     # Follow stdout and stderr; Ctrl-C to exit
+.\scripts\paper.cmd stop     # Stop the service recorded by this launcher
+```
+
+The default address is `http://127.0.0.1:8765`. Use `-Port 8766` to select another port and pass the same option to subsequent commands. Logs and process records live in `.data/`. Records include the process start time to guard against PID reuse. Legacy PID-only records are not used to stop processes; shut down an old service manually when upgrading. Native Windows source support does not extend the macOS-only npm installer.
+
+Windows verification:
+
+```powershell
+.\.venv\Scripts\python.exe -m pip install -r requirements-dev.txt
+.\.venv\Scripts\python.exe -m pytest tests -q
+cd frontend
+npx.cmd playwright install chromium
+npx.cmd playwright test
+cd ..
+```
+
+Symlink tests explicitly skip when Windows developer mode or the required privilege is unavailable. Backend text files use UTF-8; atomic replacements retry briefly when Windows file handles block them.
+
+### Start on macOS / Linux
 
 Optionally install the global `paper` command once:
 
@@ -232,7 +271,7 @@ The installed Harness `deepseek-official` provider uses the Messages protocol:
 - Base URL: `https://api.deepseek.com/anthropic`
 - Model: `deepseek-flash`
 
-The previous base URL, `https://api.deepseek.com`, returns HTTP 404 for this protocol; DR automatically migrates that old setting. Source installations store the key in `~/.config/deepseek-pdf-reader/settings.json` with permissions `0600`; the page does not receive the key back. Do not expose the local service to the public internet.
+The previous base URL, `https://api.deepseek.com`, returns HTTP 404 for this protocol; DR automatically migrates that old setting. Source installations store the key in `~/.config/deepseek-pdf-reader/settings.json` (under the user's home directory on Windows); the page does not receive the key back. POSIX permissions are `0600`; on Windows, access depends on inherited directory ACLs, and `chmod` does not establish an equivalent private ACL. Do not expose the local service to the public internet.
 
 Translation bypasses Harness: the backend uses the same key, model, and base URL to call `<Base URL>/v1/messages` directly, with thinking disabled and streaming enabled.
 

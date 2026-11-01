@@ -1,4 +1,5 @@
 import json
+import os
 import socket
 from unittest.mock import patch
 
@@ -90,7 +91,7 @@ def test_pdf_annotations_history(client):
     annotation = client.post(f'/api/papers/{id}/annotations', json={'page': 1, 'text': 'evidence', 'note': 'check this', 'rects': [{'x': 0.1, 'y': 0.2, 'width': 0.3, 'height': 0.02}]}).json()
     assert client.get(f'/api/papers/{id}/annotations').json()[0]['note'] == 'check this'
     folder = client.app.state.data_dir / 'papers' / id
-    assert '[p.2]' in (folder / 'fulltext.md').read_text()
+    assert '[p.2]' in (folder / 'fulltext.md').read_text(encoding='utf-8')
     assert json.loads((folder / 'annotations.json').read_text())[0]['id'] == annotation['id']
     response = client.post(f'/api/papers/{id}/chat', json={'message': 'Explain this', 'selection': {'text': 'evidence', 'page': 1, 'rects': []}})
     assert response.headers['content-type'].startswith('text/event-stream')
@@ -120,7 +121,11 @@ def test_settings_origin_and_extension(client, tmp_path):
         result = client.put('/api/settings', json={'api_key': 'secret-for-test'})
     assert result.json() == {'has_api_key': True, 'model': 'deepseek-flash', 'base_url': 'https://api.deepseek.com/anthropic'}
     settings_file = tmp_path / 'config/settings.json'
-    assert settings_file.stat().st_mode & 0o777 == 0o600
+    if os.name == 'nt':
+        # Windows st_mode exposes the read-only flag, not POSIX permissions.
+        assert settings_file.stat().st_mode & 0o200
+    else:
+        assert settings_file.stat().st_mode & 0o777 == 0o600
     assert 'secret-for-test' not in client.get('/api/health').text
     assert 'secret-for-test' not in client.get('/api/settings').text
     extension = {'Origin': 'chrome-extension://' + 'a' * 32}

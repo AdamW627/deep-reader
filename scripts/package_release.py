@@ -35,7 +35,7 @@ def allowed(name):
         return False
     if path.parts[0] == 'frontend' and path.parts[1] not in {'src', 'public', 'tests'}:
         return path.name in FRONTEND_FILES and len(path.parts) == 2
-    return path.suffix in SUFFIXES or name == 'scripts/paper'
+    return path.suffix in SUFFIXES or name in {'scripts/paper', 'scripts/paper.ps1', 'scripts/paper.cmd'}
 
 
 def build(output):
@@ -45,7 +45,7 @@ def build(output):
     names.update({'scripts/package_release.py', 'tests/test_release.py', '.github/workflows/ci.yml'})
     names.update({'npm/package.json', 'npm/README.md', 'npm/prepare.mjs', 'npm/bin/reader.mjs'})
     names.update({'frontend/tests/citation-navigation.spec.js'})
-    names.update(str(path.relative_to(ROOT)) for path in (ROOT / 'npm' / 'test').glob('*.test.mjs'))
+    names.update(path.relative_to(ROOT).as_posix() for path in (ROOT / 'npm' / 'test').glob('*.test.mjs'))
     selected = []
     for name in sorted(filter(None, names)):
         if not allowed(name):

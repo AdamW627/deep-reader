@@ -8,13 +8,13 @@ read_image, because PDF text extraction mangles them.
 from __future__ import annotations
 
 import json
-import os
 import re
 import shutil
-import uuid
 from pathlib import Path
 
 import pymupdf
+
+from .storage import atomic_write
 
 VERSION = 2
 PAGE_DPI = 120
@@ -82,7 +82,7 @@ def build(folder: Path, title=None):
             shutil.rmtree(directory)
         directory.mkdir()
     if title is None and (folder / 'paper.json').exists():
-        title = json.loads((folder / 'paper.json').read_text()).get('title')
+        title = json.loads((folder / 'paper.json').read_text(encoding='utf-8')).get('title')
     lines = [f'# {title or "Paper"}', '',
              '> PDF 文本抽取：每页以 `## [p.N]` 开头，每个段落块以 `[p.N#K]` 开头。公式、上下标和表格可能损坏，请对照 figures/ 与 pages/pN.jpg 原图。', '']
     index, block_pages, seen = [], [], {}
@@ -132,15 +132,14 @@ def build(folder: Path, title=None):
 
 
 def write_text(path: Path, text: str):
-    temp = path.with_name(path.name + '.' + uuid.uuid4().hex + '.tmp')
-    temp.write_text(text)
-    os.replace(temp, path)
+    with atomic_write(path) as stream:
+        stream.write(text)
 
 
 def ensure(folder: Path):
     marker = Path(folder) / 'assets.json'
     try:
-        if json.loads(marker.read_text()).get('version') == VERSION:
+        if json.loads(marker.read_text(encoding='utf-8')).get('version') == VERSION:
             return
     except (OSError, ValueError):
         pass
