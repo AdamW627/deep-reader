@@ -51,7 +51,7 @@ def harness(monkeypatch):
             cwd = Path(self.call['cwd'])
             self.call.update(prompt=prompt, files=sorted(str(p.relative_to(cwd)) for p in cwd.rglob('*') if p.is_file()))
             if (cwd / 'reader_profile.md').exists():
-                self.call['profile'] = (cwd / 'reader_profile.md').read_text()
+                self.call['profile'] = (cwd / 'reader_profile.md').read_text(encoding='utf-8')
             for event in ({'type': 'tool/call', 'seq': 1, 'data': {'callId': 'c1', 'name': 'read', 'arguments': json.dumps({'file_path': str(cwd / 'fulltext.md')})}},
                           {'type': 'assistant/message', 'seq': 2, 'data': {'message': {'content': [{'type': 'text', 'text': '我先看一下原文。'}]}}}):
                 if on_notification:
@@ -76,13 +76,13 @@ def test_figures_are_cropped_and_figure_text_leaves_fulltext(client):
     assert [(f['label'], f['page'], f['image']) for f in figures] == [('Figure 1', 1, 'figures/figure-1.jpg')]
     assert (folder / 'figures/figure-1.jpg').stat().st_size > 0
     assert (folder / 'pages/p1.jpg').stat().st_size > 0
-    text = (folder / 'fulltext.md').read_text()
+    text = (folder / 'fulltext.md').read_text(encoding='utf-8')
     assert 'axis' not in text
     assert '[p.1#1] Body paragraph before the figure.' in text
     assert 'Fig. 1 (left) shows' in text
     blocks = client.get(f'/api/papers/{paper["id"]}/blocks').json()['pages'][0]['blocks']
     assert blocks[0]['id'] == 'p1#1' and all(0 <= v <= 1 for v in blocks[0]['bbox'])
-    assert 'Figure 1 [p.1] image: figures/figure-1.jpg' in (folder / 'figures.md').read_text()
+    assert 'Figure 1 [p.1] image: figures/figure-1.jpg' in (folder / 'figures.md').read_text(encoding='utf-8')
 
 
 def test_legacy_paper_sources_are_migrated(client):
@@ -90,11 +90,11 @@ def test_legacy_paper_sources_are_migrated(client):
     folder = client.app.state.data_dir / 'papers' / pid
     for name in ('assets.json', 'blocks.json', 'figures.md'):
         (folder / name).unlink()
-    (folder / 'fulltext.md').write_text('## [p.1]\n\nold text')
-    (folder / 'AGENTS.md').write_text('old instructions')
+    (folder / 'fulltext.md').write_text('## [p.1]\n\nold text', encoding='utf-8')
+    (folder / 'AGENTS.md').write_text('old instructions', encoding='utf-8')
     assert client.get(f'/api/papers/{pid}/blocks').json()['pages'][1]['blocks'][0]['text'] == 'Second page conclusion.'
-    assert '[p.2#1] Second page conclusion.' in (folder / 'fulltext.md').read_text()
-    assert '论文讲解协议' in (folder / 'AGENTS.md').read_text()
+    assert '[p.2#1] Second page conclusion.' in (folder / 'fulltext.md').read_text(encoding='utf-8')
+    assert '论文讲解协议' in (folder / 'AGENTS.md').read_text(encoding='utf-8')
 
 
 def test_profile_action_and_live_progress(client, harness):

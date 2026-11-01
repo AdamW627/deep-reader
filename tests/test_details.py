@@ -7,6 +7,16 @@ from backend.app import create_app
 from tests.backend_test import client, upload
 
 
+def symlink_or_skip(link, target, directory=False):
+    # Windows 默认不允许普通进程创建符号链接（需开发者模式或管理员权限）。
+    try:
+        link.symlink_to(target, target_is_directory=directory)
+    except OSError as exc:
+        if getattr(exc, 'winerror', None) == 1314:
+            pytest.skip(f'Windows symlink privilege unavailable: {exc}')
+        raise
+
+
 def test_details_resolved_paths_and_allowlist(client, tmp_path):
     paper = upload(client)
     folder = client.app.state.data_dir / 'papers' / paper['id']
@@ -34,7 +44,7 @@ def test_details_custom_root_legacy_and_project(tmp_path):
     root = tmp_path / 'custom storage'
     root.mkdir()
     alias = tmp_path / 'alias'
-    alias.symlink_to(root, target_is_directory=True)
+    symlink_or_skip(alias, root, directory=True)
     with TestClient(create_app(alias, tmp_path / 'settings.json')) as client:
         paper = upload(client)
         folder = root / 'papers' / paper['id']
@@ -74,10 +84,10 @@ def test_details_notfound_and_escaping_paths(client, tmp_path):
     assert client.get(f"/api/papers/{paper['id']}/details").status_code == 404
     outside = tmp_path / 'outside.pdf'
     outside.write_bytes(b'private file')
-    pdf.symlink_to(outside)
+    symlink_or_skip(pdf, outside)
     assert client.get(f"/api/papers/{paper['id']}/details").status_code == 404
     escaped = client.app.state.data_dir / 'papers' / ('e' * 32)
-    escaped.symlink_to(folder.parent.parent.parent, target_is_directory=True)
+    symlink_or_skip(escaped, folder.parent.parent.parent, directory=True)
     assert client.get(f"/api/papers/{'e' * 32}/details").status_code == 404
 
 

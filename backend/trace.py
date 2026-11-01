@@ -26,7 +26,7 @@ def describe(event):
         return ('定位原文 ' + str(args.get('description') or '')[:60]).strip()
     else:
         target = str(args.get('file_path') or args.get('path') or args.get('query') or args.get('url') or '')
-        target = target if name.startswith('web_') else target.rsplit('/', 1)[-1]
+        target = target if name.startswith('web_') else target.replace('\\', '/').rsplit('/', 1)[-1]
         target = target[:60]
     labels = {'read': '阅读', 'read_image': '查看图片', 'grep': '搜索', 'glob': '查找文件', 'web_search': '联网搜索', 'web_fetch': '读取网页'}
     return f'{labels.get(name, "调用 " + name)} {target}'.strip()

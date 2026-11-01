@@ -43,7 +43,7 @@ def sdk(monkeypatch):
         def run(self, prompt, **kwargs):
             self.call['prompt'] = prompt
             cwd = Path(self.call['cwd'])
-            self.call['files'] = {str(p.relative_to(cwd)): p.read_bytes()
+            self.call['files'] = {p.relative_to(cwd).as_posix(): p.read_bytes()
                                   for p in cwd.rglob('*') if p.is_file()}
             return SimpleNamespace(finish_reason='stop', final_response='Mock SDK answer [p.1]', events=[])
 

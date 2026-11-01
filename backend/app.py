@@ -25,6 +25,7 @@ from pydantic import BaseModel, Field
 
 from . import assets, prompts
 from .download import MAX_BYTES, download
+from .storage import atomic_write
 from .project_memory import MAX_CHARS, context_text, maintenance_due, maintenance_prompt, normalize_items, record_completed_turn
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -114,16 +115,13 @@ def now():
 
 
 def load(path, default):
-    return json.loads(path.read_text()) if path.exists() else default
+    return json.loads(path.read_text(encoding='utf-8')) if path.exists() else default
 
 
 def save(path, value, private=False):
     path.parent.mkdir(parents=True, exist_ok=True)
-    temp = path.with_name(path.name + '.' + uuid.uuid4().hex + '.tmp')
-    fd = os.open(temp, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
-    with os.fdopen(fd, 'w') as f:
+    with atomic_write(path) as f:
         json.dump(value, f, ensure_ascii=False, indent=2)
-    os.replace(temp, path)
 
 
 class ImportBody(BaseModel):
@@ -339,11 +337,11 @@ def create_app(data_dir=None, settings_path=None):
                 target = folder / name
                 if not text:
                     target.unlink(missing_ok=True)
-                elif not target.exists() or target.read_text() != text:
-                    target.write_text(text)
+                elif not target.exists() or target.read_text(encoding='utf-8') != text:
+                    target.write_text(text, encoding='utf-8')
 
     def profile_text():
-        return profile_file.read_text().strip() if profile_file.exists() else ''
+        return profile_file.read_text(encoding='utf-8').strip() if profile_file.exists() else ''
 
     def build_workspace(folder, workspace, card=True):
         # Only paper sources enter the agent cwd; messages and restore markers stay
@@ -404,7 +402,7 @@ def create_app(data_dir=None, settings_path=None):
         save(folder / 'annotations.json', [])
         save(folder / 'messages.json', [])
         assets.build(folder, meta['title'])
-        (folder / 'AGENTS.md').write_text(INSTRUCTIONS)
+        (folder / 'AGENTS.md').write_text(INSTRUCTIONS, encoding='utf-8')
         save(folder / 'paper.json', meta)
         return meta
 
@@ -550,12 +548,12 @@ def create_app(data_dir=None, settings_path=None):
         save(folder / 'paper.json', meta)
         fulltext = folder / 'fulltext.md'
         if title != old and fulltext.exists():
-            text = fulltext.read_text(errors='replace')
+            text = fulltext.read_text(encoding='utf-8', errors='replace')
             if text.startswith('# '):
                 rest = text.split('\n', 1)[1] if '\n' in text else ''
-                fulltext.write_text(f'# {title}\n{rest}')
+                fulltext.write_text(f'# {title}\n{rest}', encoding='utf-8')
             else:
-                fulltext.write_text(f'# {title}\n\n{text}')
+                fulltext.write_text(f'# {title}\n\n{text}', encoding='utf-8')
 
     @app.on_event('startup')
     def repair_titles():
@@ -645,7 +643,7 @@ def create_app(data_dir=None, settings_path=None):
         state = load(folder / 'card.json', {'status': 'missing'})
         if state['status'] == 'running' and folder.name not in cards_running:
             state = {'status': 'error', 'error': '生成被中断（服务重启），请重试。'}
-        content = (folder / 'paper_card.md').read_text() if (folder / 'paper_card.md').exists() else ''
+        content = (folder / 'paper_card.md').read_text(encoding='utf-8') if (folder / 'paper_card.md').exists() else ''
         if content and state['status'] == 'missing':
             state['status'] = 'done'
         try:
@@ -954,7 +952,7 @@ def create_app(data_dir=None, settings_path=None):
                     related = context_text(memory['items'], body.message + ' ' + load(folder / 'paper.json', {}).get('title', ''))
                     (workspace / 'project_memory.md').unlink(missing_ok=True)
                     if related:
-                        (workspace / 'project_memory.md').write_text('# 当前项目记忆\n以下是用户在本项目明确表达的背景和研究线索，仅在存在具体关联时使用；关联牵强就不要提。论文证据优先，不要把记忆中的猜测当事实。\n\n' + related + '\n')
+                        (workspace / 'project_memory.md').write_text('# 当前项目记忆\n以下是用户在本项目明确表达的背景和研究线索，仅在存在具体关联时使用；关联牵强就不要提。论文证据优先，不要把记忆中的猜测当事实。\n\n' + related + '\n', encoding='utf-8')
                     result = session.run(prompt, on_notification=notification)
                     if result.finish_reason == 'error' or not result.final_response:
                         emit('error', agent_error(result, s['api_key']))
